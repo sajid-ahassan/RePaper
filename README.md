@@ -275,17 +275,6 @@ docker pull sajid2680/repaper:latest
 docker run --env-file .env -p 8501:8501 sajid2680/repaper:latest
 ```
 
-
-
-## Recommended `.env`
-
-```env
-OPENAI_API_KEY=
-TAVILY_API_KEY=
-QDRANT_API_KEY=
-QDRANT_URL=
-```
-
 ---
 
 ## Future Improvements

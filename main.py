@@ -346,7 +346,8 @@ if user_input:
                     if meta.get('langgraph_node') == 'generate' and chunk.content:
                         yield chunk.content
 
-            ai_message = st.write_stream(stream_answer)
+            with st.spinner("Thinking..."):
+                ai_message = st.write_stream(stream_answer)
 
             if not ai_message:
                 final_state = graph.get_state(config).values

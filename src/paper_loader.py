@@ -39,21 +39,35 @@ def web_loader(url):
 
 
 def paper_loader(paper_query):
-    search = arxiv.Search(query=paper_query, max_results=1)
-    paper = next(arxiv.Client().results(search))
+    search = arxiv.Search(
+        query=paper_query,
+        max_results=1
+    )
+
+    client = arxiv.Client(
+        page_size=1,
+        delay_seconds=5,
+        num_retries=3
+    )
+
+    paper = next(client.results(search))
 
     pdf_url = paper.entry_id.replace("/abs/", "/pdf/") + ".pdf"
 
+    response = requests.get(pdf_url, timeout=30)
+    response.raise_for_status()
+
     tmp = tempfile.NamedTemporaryFile(suffix=".pdf", delete=False)
-    tmp.write(requests.get(pdf_url).content)
+    tmp.write(response.content)
     tmp.close()
 
     try:
         p_docs = PyMuPDFLoader(tmp.name).load()
         title = paper.title or paper_query
-        docs = _splitter.split_documents(inject_title(p_docs,title))
+        docs = _splitter.split_documents(inject_title(p_docs, title))
     finally:
-        os.remove(tmp.name) 
+        os.remove(tmp.name)
+
     return docs
 
 

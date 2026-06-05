@@ -12,6 +12,7 @@ from langchain_classic.storage import LocalFileStore
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 load_dotenv()
 model = ChatOpenAI(model = 'gpt-4o-mini',api_key= os.environ["OPENAI_API_KEY"])
@@ -40,11 +41,19 @@ client = QdrantClient(
 
 def get_vectorstore(session_id):
     collection_name = get_collection(session_id)
-    if not client.collection_exists(collection_name):
-        client.create_collection(
-            collection_name,
-            vectors_config=VectorParams(size = EMBEDDING_DIM,distance=Distance.COSINE)
-        )
+    try:
+        if not client.collection_exists(collection_name):
+            client.create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(
+                    size=EMBEDDING_DIM,
+                    distance=Distance.COSINE
+                )
+            )
+    except UnexpectedResponse as e:
+        # Ignore only Qdrant 409 conflict: collection already exists
+        if getattr(e, "status_code", None) != 409:
+            raise
     return QdrantVectorStore(
         client=client,
         collection_name = collection_name,

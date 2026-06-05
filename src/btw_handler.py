@@ -44,4 +44,6 @@ def handler(query):
         ])
         kwargs = {'query':query}
         
-    return (answer_prompt | model).invoke(kwargs).content
+    for chunk in (answer_prompt | model).stream(kwargs):
+        if chunk.content:
+            yield chunk.content

@@ -305,10 +305,18 @@ if user_input:
             with st.chat_message("user", avatar="👤"):
                 st.markdown(query)
                 
+            # with st.chat_message("assistant", avatar="🤖"):
+            #     with st.spinner("Thinking..."):
+            #         response = handler(query)
+            #     st.info(response, icon="✨") 
             with st.chat_message("assistant", avatar="🤖"):
-                with st.spinner("Thinking..."):
-                    response = handler(query)
-                st.info(response, icon="✨") 
+                placeholder = st.empty()
+                response_text = ""
+                for chunk in handler(query):
+                    response_text += chunk
+                    placeholder.markdown(response_text + "▌")
+                placeholder.markdown(response_text)
+            
     else :
     # ============= Use graph ===============
     
@@ -335,7 +343,7 @@ if user_input:
 
             def stream_answer():
                 for chunk, meta in graph.stream(input_state, config=config, stream_mode='messages'):
-                    if meta.get('langgraph_node') == 'answer' and chunk.content:
+                    if meta.get('langgraph_node') == 'generate' and chunk.content:
                         yield chunk.content
 
             ai_message = st.write_stream(stream_answer)
